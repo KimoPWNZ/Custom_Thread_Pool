@@ -1,4 +1,4 @@
 @FunctionalInterface
-public interface CustomRejectedExecutionHandler {
+interface CustomRejectedExecutionHandler {
     void rejectedExecution(Runnable r, CustomThreadPool executor);
 }

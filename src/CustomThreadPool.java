@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CustomThreadPool implements Executor {
     private final int corePoolSize;
     private final int maxPoolSize;
-    private final long keepAliveTime;
+    private final long keepAliveTimeMillis;
     private final int queueSize;
     private final int minSpareThreads;
     private final BlockingQueue<Runnable> taskQueue;
@@ -17,7 +17,7 @@ public class CustomThreadPool implements Executor {
     public CustomThreadPool(int corePoolSize, int maxPoolSize, long keepAliveTimeSeconds, int queueSize, int minSpareThreads) {
         this.corePoolSize = corePoolSize;
         this.maxPoolSize = maxPoolSize;
-        this.keepAliveTime = TimeUnit.SECONDS.toMillis(keepAliveTimeSeconds);
+        this.keepAliveTimeMillis = TimeUnit.SECONDS.toMillis(keepAliveTimeSeconds);
         this.queueSize = queueSize;
         this.minSpareThreads = minSpareThreads;
         this.taskQueue = new ArrayBlockingQueue<>(queueSize);
@@ -35,7 +35,11 @@ public class CustomThreadPool implements Executor {
         }
     }
 
-    private void ensureWorkerThreads() {
+    protected BlockingQueue<Runnable> getTaskQueue() {
+        return taskQueue;
+    }
+
+    protected void ensureWorkerThreads() {
         if (activeThreads.get() < Math.max(corePoolSize, minSpareThreads)) {
             createWorker();
         }
@@ -59,6 +63,10 @@ public class CustomThreadPool implements Executor {
         workers.forEach(Worker::shutdownNow);
     }
 
+    public boolean isShutdown() {
+        return isShutdown;
+    }
+
     private class Worker implements Runnable {
         private volatile boolean running = true;
 
@@ -66,7 +74,7 @@ public class CustomThreadPool implements Executor {
         public void run() {
             while (running) {
                 try {
-                    Runnable task = taskQueue.poll(keepAliveTime, TimeUnit.MILLISECONDS);
+                    Runnable task = taskQueue.poll(keepAliveTimeMillis, TimeUnit.MILLISECONDS);
                     if (task != null) {
                         task.run();
                     } else if (activeThreads.get() > corePoolSize) {

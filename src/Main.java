@@ -1,12 +1,7 @@
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        CustomThreadPool threadPool = new CustomThreadPool(
-                2,
-                4,
-                5,
-                5,
-                1
-        );
+        // Передаём 5-й аргумент minSpareThreads
+        CustomThreadPool threadPool = new CustomThreadPool(2, 4, 5, 5, 1);
 
         for (int i = 1; i <= 10; i++) {
             int taskId = i;
